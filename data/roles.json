@@ -1,0 +1,17 @@
+[
+  {
+    "id": 1,
+    "name": "admin",
+    "description": "Administrator with full access"
+  },
+  {
+    "id": 2,
+    "name": "manager",
+    "description": "Manager with limited admin access"
+  },
+  {
+    "id": 3,
+    "name": "user",
+    "description": "Regular user with basic access"
+  }
+]

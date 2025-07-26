@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web App Boilerplate - RBAC System</title>
+    
+    <!-- Tabulator CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/css/tabulator.min.css" rel="stylesheet">
+    
+    
+    <!-- Bootstrap CSS for styling -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+
+        <!-- Luxon for dates -->
+
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+
+    
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .permissions-badge {
+            font-size: 0.75em;
+        }
+        .table-container {
+            margin-top: 20px;
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .role-badge {
+            margin: 2px;
+        }
+        .export-buttons {
+            margin-bottom: 15px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-shield-alt"></i> RBAC System</a>
+            <div class="navbar-nav ms-auto" id="navbar-user">
+                <span class="navbar-text me-3" id="user-info"></span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <!-- Login Form -->
+        <div id="login-section" class="login-container">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h4><i class="fas fa-user-lock"></i> Iniciar Sesión</h4>
+                </div>
+                <div class="card-body">
+                    <form id="login-form">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Usuario:</label>
+                            <input type="text" class="form-control" id="username" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Contraseña:</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+                    </form>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            <strong>Usuarios de prueba:</strong><br>
+                            Admin: admin/admin123<br>
+                            Manager: manager/manager123<br>
+                            User: user/user123
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="hidden">
+            <!-- Tabs Navigation -->
+            <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                        <i class="fas fa-users"></i> Usuarios
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reports-tab" data-bs-toggle="tab" data-bs-target="#reports" type="button" role="tab">
+                        <i class="fas fa-chart-bar"></i> Reportes
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="roles-tab" data-bs-toggle="tab" data-bs-target="#roles" type="button" role="tab">
+                        <i class="fas fa-user-tag"></i> Roles
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Content -->
+            <div class="tab-content" id="mainTabContent">
+                <!-- Users Tab -->
+                <div class="tab-pane fade show active" id="users" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <h4>Gestión de Usuarios</h4>
+                        <button class="btn btn-primary" onclick="showCreateUserModal()" id="create-user-btn">
+                            <i class="fas fa-plus"></i> Nuevo Usuario
+                        </button>
+                    </div>
+                    
+                    <div class="export-buttons">
+                        <button class="btn btn-success btn-sm" onclick="exportTable('users', 'xlsx')">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="exportTable('users', 'pdf')">
+                            <i class="fas fa-file-pdf"></i> Exportar PDF
+                        </button>
+                        <button class="btn btn-info btn-sm" onclick="exportTable('users', 'csv')">
+                            <i class="fas fa-file-csv"></i> Exportar CSV
+                        </button>
+                    </div>
+                    
+                    <div id="users-table"  style="height: 400px;" class="table-container"></div>
+                </div>
+
+                <!-- Reports Tab -->
+                <div class="tab-pane fade" id="reports" role="tabpanel">
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <h4>Reportes</h4>
+                        <button class="btn btn-primary" onclick="showCreateReportModal()" id="create-report-btn">
+                            <i class="fas fa-plus"></i> Nuevo Reporte
+                        </button>
+                    </div>
+                    
+                    <div class="export-buttons">
+                        <button class="btn btn-success btn-sm" onclick="exportTable('reports', 'xlsx')">
+                            <i class="fas fa-file-excel"></i> Exportar Excel
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="exportTable('reports', 'pdf')">
+                            <i class="fas fa-file-pdf"></i> Exportar PDF
+                        </button>
+                    </div>
+                    
+                    <div id="reports-table" class="table-container"></div>
+                </div>
+
+                <!-- Roles Tab -->
+                <div class="tab-pane fade" id="roles" role="tabpanel">
+                    <h4 class="mt-3">Roles del Sistema</h4>
+                    <div id="roles-table" class="table-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div class="modal fade" id="createUserModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Nuevo Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-user-form">
+                        <div class="mb-3">
+                            <label class="form-label">Usuario:</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email:</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Contraseña:</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Roles:</label>
+                            <select class="form-select" name="roles" multiple>
+                                <option value="admin">Admin</option>
+                                <option value="manager">Manager</option>
+                                <option value="user" selected>User</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="createUser()">Crear Usuario</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Report Modal -->
+    <div class="modal fade" id="createReportModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Crear Nuevo Reporte</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="create-report-form">
+                        <div class="mb-3">
+                            <label class="form-label">Título del Reporte:</label>
+                            <input type="text" class="form-control" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Datos (JSON):</label>
+                            <textarea class="form-control" name="data" rows="10" placeholder='[{"campo1": "valor1", "campo2": "valor2"}]' required></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="createReport()">Crear Reporte</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tabulator/5.5.2/js/tabulator.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        let currentUser = null;
+        let usersTable, reportsTable, rolesTable;
+
+        // API helper functions
+        async function apiCall(url, options = {}) {
+            const response = await fetch(url, {
+                credentials: 'include',
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...options.headers
+                }
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'API call failed');
+            }
+
+            return response.json();
+        }
+
+        // Check permissions
+        async function hasPermission(resource, action) {
+            try {
+                const result = await apiCall('/api/permissions/check', {
+                    method: 'POST',
+                    body: JSON.stringify({ resource, action })
+                });
+                return result.hasPermission;
+            } catch {
+                return false;
+            }
+        }
+
+        // Authentication
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                const result = await apiCall('/api/auth/login', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        username: formData.get('username'),
+                        password: formData.get('password')
+                    })
+                });
+
+                if (result.success) {
+                    currentUser = result.user;
+                    showDashboard();
+                }
+            } catch (error) {
+                alert('Error de login: ' + error.message);
+            }
+        });
+
+        async function logout() {
+            try {
+                await apiCall('/api/auth/logout', { method: 'POST' });
+                currentUser = null;
+                showLogin();
+            } catch (error) {
+                console.error('Logout error:', error);
+                showLogin();
+            }
+        }
+
+        // UI Navigation
+        function showLogin() {
+            document.getElementById('login-section').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+        }
+
+        async function showDashboard() {
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            
+            // Update user info
+            const userInfo = document.getElementById('user-info');
+            const rolesBadges = currentUser.roles.map(role => 
+                `<span class="badge bg-primary role-badge">${role}</span>`
+            ).join('');
+            userInfo.innerHTML = `${currentUser.username} ${rolesBadges}`;
+
+            // Check permissions and hide/show elements
+            await updateUIPermissions();
+            
+            // Initialize tables
+            await initializeTables();
+        }
+
+        async function updateUIPermissions() {
+            // Check users permissions
+            const canCreateUsers = await hasPermission('users', 'write');
+            document.getElementById('create-user-btn').style.display = canCreateUsers ? 'block' : 'none';
+
+            // Check reports permissions
+            const canCreateReports = await hasPermission('reports', 'write');
+            document.getElementById('create-report-btn').style.display = canCreateReports ? 'block' : 'none';
+
+            // Check roles permissions
+            const canViewRoles = await hasPermission('roles', 'read');
+            const rolesTab = document.getElementById('roles-tab');
+            rolesTab.style.display = canViewRoles ? 'block' : 'none';
+        }
+
+        // Table Initialization
+        async function initializeTables() {
+            // Esperar un poco para que el DOM esté completamente renderizado
+            setTimeout(async () => {
+                await initializeUsersTable();
+                await initializeReportsTable();
+                await initializeRolesTable();
+            }, 100);
+        }
+
+        async function initializeUsersTable() {
+            try {
+                const users = await apiCall('/api/users');
+                console.log('Users data:', users); // Debug
+                const canDelete = await hasPermission('users', 'delete');
+
+                const columns = [
+                    { title: "ID", field: "id", width: 70 },
+                    { title: "Usuario", field: "username", headerFilter: "input" },
+                    { title: "Email", field: "email", headerFilter: "input" },
+                    { 
+                        title: "Roles", 
+                        field: "roles", 
+                        formatter: (cell) => {
+                            const roles = cell.getValue();
+                            if (Array.isArray(roles)) {
+                                return roles.map(role => 
+                                    `<span class="badge bg-info me-1">${role}</span>`
+                                ).join('');
+                            }
+                            return roles || '';
+                        }
+                    },
+                    { title: "Creado", field: "createdAt", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY" } }
+                ];
+
+                if (canDelete) {
+                    columns.push({
+                        title: "Acciones",
+                        formatter: () => '<button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>',
+                        cellClick: async (e, cell) => {
+                            if (confirm('¿Estás seguro de eliminar este usuario?')) {
+                                await deleteUser(cell.getRow().getData().id);
+                            }
+                        },
+                        headerSort: false,
+                        width: 100
+                    });
+                }
+
+                usersTable = await new Tabulator("#users-table", {
+                    data: users,
+                    columns: columns,
+                    layout: "fitColumns",
+                    pagination: "local",
+                    paginationSize: 10,
+                    movableColumns: true,
+                    resizableRows: true,
+                    printAsHtml: true,
+                    printHeader: "<h1>Usuarios del Sistema</h1>",
+                    printFooter: "",
+                    rowContextMenu: [
+                        {
+                            label: "Ver Detalles",
+                            action: function(e, row) {
+                                alert("Usuario: " + JSON.stringify(row.getData(), null, 2));
+                            }
+                        }
+                    ]
+                });
+
+                await usersTable.setData(users);
+                
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        async function initializeReportsTable() {
+            try {
+                const reports = await apiCall('/api/reports');
+                console.log('Reports data:', reports); // Debug
+
+                const columns = [
+                    { title: "ID", field: "id", width: 70 },
+                    { title: "Título", field: "title", headerFilter: "input" },
+                    { title: "Creado por", field: "createdBy" },
+                    { title: "Fecha", field: "createdAt", formatter: "datetime", formatterParams: { outputFormat: "DD/MM/YYYY HH:mm" } },
+                    {
+                        title: "Acciones",
+                        formatter: () => '<button class="btn btn-info btn-sm me-1"><i class="fas fa-eye"></i></button>',
+                        cellClick: (e, cell) => {
+                            const data = cell.getRow().getData();
+                            showReportData(data);
+                        },
+                        headerSort: false,
+                        width: 100
+                    }
+                ];
+
+                // Destruir tabla existente si existe
+                if (reportsTable) {
+                    reportsTable.destroy();
+                }
+
+                reportsTable = await new Tabulator("#reports-table", {
+                    data: reports,
+                    columns: columns,
+                    layout: "fitColumns",
+                    pagination: "local",
+                    paginationSize: 10,
+                    movableColumns: true,
+                    resizableRows: true
+                });
+
+                // Esperar a que la tabla se construya completamente
+                await reportsTable.setData(reports);
+                
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                document.getElementById('reports-table').innerHTML = '<div class="alert alert-danger">Error cargando reportes: ' + error.message + '</div>';
+            }
+        }
+
+        async function initializeRolesTable() {
+            try {
+                const roles = await apiCall('/api/roles');
+                console.log('Roles data:', roles); // Debug
+
+                // Destruir tabla existente si existe
+                if (rolesTable) {
+                    rolesTable.destroy();
+                }
+
+                rolesTable = await new Tabulator("#roles-table", {
+                    data: roles,
+                    columns: [
+                        { title: "ID", field: "id", width: 70 },
+                        { title: "Nombre", field: "name" },
+                        { title: "Descripción", field: "description" }
+                    ],
+                    layout: "fitColumns",
+                    pagination: "local",
+                    paginationSize: 10
+                });
+
+                // Esperar a que la tabla se construya completamente
+                await rolesTable.setData(roles);
+                
+            } catch (error) {
+                console.error('Error loading roles:', error);
+                document.getElementById('roles-table').innerHTML = '<div class="alert alert-danger">Error cargando roles: ' + error.message + '</div>';
+            }
+        }
+
+        // Export functions
+        function exportTable(tableType, format) {
+            let table;
+            let filename;
+
+            switch (tableType) {
+                case 'users':
+                    table = usersTable;
+                    filename = 'usuarios';
+                    break;
+                case 'reports':
+                    table = reportsTable;
+                    filename = 'reportes';
+                    break;
+                case 'roles':
+                    table = rolesTable;
+                    filename = 'roles';
+                    break;
+                default:
+                    return;
+            }
+
+            if (!table) return;
+
+            switch (format) {
+                case 'csv':
+                    table.download("csv", `${filename}.csv`);
+                    break;
+                case 'xlsx':
+                    table.download("xlsx", `${filename}.xlsx`, { sheetName: filename });
+                    break;
+                case 'pdf':
+                    table.download("pdf", `${filename}.pdf`, {
+                        orientation: "landscape",
+                        title: `Reporte de ${filename.charAt(0).toUpperCase() + filename.slice(1)}`,
+                        jsPDF: {
+                            unit: "mm",
+                            format: "a4",
+                            orientation: "landscape"
+                        }
+                    });
+                    break;
+            }
+        }
+
+        // User management
+        function showCreateUserModal() {
+            const modal = new bootstrap.Modal(document.getElementById('createUserModal'));
+            modal.show();
+        }
+
+        async function createUser() {
+            const form = document.getElementById('create-user-form');
+            const formData = new FormData(form);
+            
+            const roles = Array.from(form.querySelector('[name="roles"]').selectedOptions)
+                .map(option => option.value);
+
+            try {
+                await apiCall('/api/users', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        username: formData.get('username'),
+                        email: formData.get('email'),
+                        password: formData.get('password'),
+                        roles: roles
+                    })
+                });
+
+                bootstrap.Modal.getInstance(document.getElementById('createUserModal')).hide();
+                form.reset();
+                await initializeUsersTable();
+                alert('Usuario creado exitosamente');
+            } catch (error) {
+                alert('Error creando usuario: ' + error.message);
+            }
+        }
+
+        async function deleteUser(userId) {
+            try {
+                await apiCall(`/api/users/${userId}`, { method: 'DELETE' });
+                await initializeUsersTable();
+                alert('Usuario eliminado exitosamente');
+            } catch (error) {
+                alert('Error eliminando usuario: ' + error.message);
+            }
+        }
+
+        // Report management
+        function showCreateReportModal() {
+            const modal = new bootstrap.Modal(document.getElementById('createReportModal'));
+            modal.show();
+        }
+
+        async function createReport() {
+            const form = document.getElementById('create-report-form');
+            const formData = new FormData(form);
+            
+            try {
+                const data = JSON.parse(formData.get('data'));
+                
+                await apiCall('/api/reports', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title: formData.get('title'),
+                        data: data
+                    })
+                });
+
+                bootstrap.Modal.getInstance(document.getElementById('createReportModal')).hide();
+                form.reset();
+                await initializeReportsTable();
+                alert('Reporte creado exitosamente');
+            } catch (error) {
+                alert('Error creando reporte: ' + error.message);
+            }
+        }
+
+        function showReportData(report) {
+            const dataStr = JSON.stringify(report.data, null, 2);
+            const modalContent = `
+                <div class="modal fade" id="reportDataModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Datos del Reporte: ${report.title}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <pre class="bg-light p-3" style="max-height: 400px; overflow-y: auto;">${dataStr}</pre>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Remove existing modal if any
+            const existingModal = document.getElementById('reportDataModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+            
+            document.body.insertAdjacentHTML('beforeend', modalContent);
+            const modal = new bootstrap.Modal(document.getElementById('reportDataModal'));
+            modal.show();
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                currentUser = await apiCall('/api/auth/me');
+                showDashboard();
+            } catch {
+                showLogin();
+            }
+        });
+    </script>
+</body>

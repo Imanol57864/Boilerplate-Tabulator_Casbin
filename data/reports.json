@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "title": "Sales Report Q1",
+    "data": [
+      {
+        "month": "Jan",
+        "sales": 10000,
+        "region": "North"
+      },
+      {
+        "month": "Feb",
+        "sales": 12000,
+        "region": "North"
+      },
+      {
+        "month": "Mar",
+        "sales": 15000,
+        "region": "North"
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "title": "User Analytics",
+    "data": [
+      {
+        "date": "2024-01-01",
+        "users": 150,
+        "sessions": 300
+      },
+      {
+        "date": "2024-01-02",
+        "users": 180,
+        "sessions": 360
+      },
+      {
+        "date": "2024-01-03",
+        "users": 200,
+        "sessions": 420
+      }
+    ]
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "username": "theMrAdmin",
+    "email": "admin@example.com",
+    "password": "$2a$12$9z8RDcxGzE8W253Ilht8qu9D/qdYtV3YzbYp1VHy7V4G3HbyBXqwS",
+    "roles": [
+      "admin"
+    ],
+    "createdAt": "2025-07-26T06:22:45.958Z"
+  },
+  {
+    "id": 2,
+    "username": "theMrUser",
+    "email": "user@example.com",
+    "password": "$2a$12$69awhb3l.Z/K5TOHX2UvLu2uwxu4LUMQ6mVrOXL2Fj.16UXzGDOwy",
+    "roles": [
+      "user"
+    ],
+    "createdAt": "2025-07-26T06:22:46.044Z"
+  },
+  {
+    "id": 3,
+    "username": "theMrManager",
+    "email": "manager@example.com",
+    "password": "$2a$12$VetQQetRvyLFKAES11kO7.pXjdYzQEtrZ/3IWSCFbUjTik3p1BWM6",
+    "roles": [
+      "manager"
+    ],
+    "createdAt": "2025-07-26T06:22:46.151Z"
+  },
+  {
+    "id": 4,
+    "username": "imanol",
+    "email": "imanol@imanol.com",
+    "password": "$2b$10$/HCpmByf353IG/gri6HTjuihbEk98db1PkNdCOVLvidOFmLU6CHry",
+    "roles": [
+      "user"
+    ],
+    "createdAt": "2025-07-26T08:30:53.410Z"
+  }
+]
